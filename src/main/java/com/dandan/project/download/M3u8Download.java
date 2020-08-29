@@ -1,8 +1,10 @@
 package com.dandan.project.download;
 
+import cn.hutool.core.collection.ConcurrentHashSet;
 import cn.hutool.core.util.URLUtil;
 import com.dandan.project.exception.M3u8Exception;
 import com.dandan.project.listener.DownloadListener;
+import com.dandan.project.main.M3u8Main;
 import com.dandan.project.util.Constant;
 import com.dandan.project.util.Log;
 import com.dandan.project.util.MediaFormat;
@@ -65,7 +67,7 @@ public class M3u8Download {
     private String iv = "";
 
     //所有ts片段下载链接
-    private Set<String> tsSet = new LinkedHashSet<>();
+    private Set<String> tsSet = new ConcurrentHashSet<>();
 
     //解密后的片段
     private Set<File> finishedFiles = new ConcurrentSkipListSet<>(Comparator.comparingInt(o -> Integer.parseInt(o.getName().replace(".xyz", ""))));
@@ -77,10 +79,10 @@ public class M3u8Download {
     private volatile long interval = 0L;
 
     //自定义请求头
-    private Map<String, Object> requestHeaderMap = new HashMap<>();
+    private Map<String, Object> requestHeaderMap = new ConcurrentHashMap<>();
 
     //监听事件
-    private Set<DownloadListener> listenerSet = new HashSet<>(5);
+    private Set<DownloadListener> listenerSet = new ConcurrentHashSet<>(5);
 
     /**
      * 开始下载视频
@@ -155,6 +157,8 @@ public class M3u8Download {
             for (DownloadListener downloadListener : listenerSet)
                 downloadListener.end();
         }).start();
+
+
         new Thread(() -> {
             while (!fixedThreadPool.isTerminated()) {
                 try {
@@ -168,6 +172,7 @@ public class M3u8Download {
             }
         }).start();
     }
+
 
     /**
      * 合并下载好的ts片段
@@ -449,7 +454,7 @@ public class M3u8Download {
      * @param sKey   密钥
      * @return 解密后的字节数组
      */
-    private byte[] decrypt(byte[] sSrc, int length, String sKey, String iv, String method) throws Exception {
+    public byte[] decrypt(byte[] sSrc, int length, String sKey, String iv, String method) throws Exception {
         if (StringUtils.isNotEmpty(method) && !method.contains("AES"))
             throw new M3u8Exception("未知的算法！");
         // 判断Key是否正确
@@ -476,7 +481,7 @@ public class M3u8Download {
     /**
      * 字段校验
      */
-    private void checkField() {
+    public void checkField() {
         if ("m3u8".compareTo(MediaFormat.getMediaFormat(DOWNLOADURL)) != 0)
             throw new M3u8Exception(DOWNLOADURL + "不是一个完整m3u8链接！");
         if (threadCount <= 0)
@@ -591,7 +596,7 @@ public class M3u8Download {
         listenerSet.add(downloadListener);
     }
 
-    M3u8Download(String DOWNLOADURL) {
+    public M3u8Download(String DOWNLOADURL) {
         this.DOWNLOADURL = DOWNLOADURL;
         requestHeaderMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36");
     }

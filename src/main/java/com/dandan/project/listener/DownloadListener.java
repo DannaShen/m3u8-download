@@ -8,6 +8,6 @@ public interface DownloadListener {
 
     void speed(String speedPerSecond);
 
-    void end();
+    void end() ;
 
 }

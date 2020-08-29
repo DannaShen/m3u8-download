@@ -76,7 +76,7 @@ public class Test2 {
                 e.printStackTrace();
             } finally {
                 if (FileUtil.size(file1) > 0) {
-                    fileList.forEach(File::deleteOnExit);
+                    fileList.forEach(FileUtil::del);
                 }
             }
         }, 0, 1, TimeUnit.HOURS);
